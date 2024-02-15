@@ -1,4 +1,10 @@
 package com.foryoupage.credo
+import android.content.Intent
+import android.content.pm.ResolveInfo
+import android.widget.EditText
+//import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,22 +16,41 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.widget.addTextChangedListener
 import com.foryoupage.credo.ui.theme.CredoTheme
 
 class MainActivity : ComponentActivity() {
+    private lateinit var searchEditText: EditText
+    private lateinit var appsListRecyclerView: RecyclerView
+    private lateinit var appsAdapter: AppsAdapter
+    private var allApps: List<ResolveInfo> = listOf()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            CredoTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
+
+        setContentView(R.layout.activity_main)
+
+        searchEditText = findViewById(R.id.search_bar)
+        appsListRecyclerView = findViewById(R.id.apps_list)
+        appsListRecyclerView.layoutManager = LinearLayoutManager(this)
+
+        allApps = getAllInstalledApps()
+        appsAdapter = AppsAdapter(this, allApps)
+        appsListRecyclerView.adapter = appsAdapter
+
+        searchEditText.addTextChangedListener { text ->
+            val filteredApps = allApps.filter {
+                it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
             }
+            appsAdapter.updateList(filteredApps)
         }
+//        appsListRecyclerView.itemAnimator = DefaultItemAnimator()
+    }
+
+    private fun getAllInstalledApps(): List<ResolveInfo> {
+        val intent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        return packageManager.queryIntentActivities(intent, 0)
     }
 }
 
