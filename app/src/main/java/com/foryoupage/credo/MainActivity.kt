@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,9 +38,23 @@ class MainActivity : ComponentActivity() {
         appsAdapter = AppsAdapter(this, allApps)
         appsListRecyclerView.adapter = appsAdapter
 
+//        searchEditText.addTextChangedListener { text ->
+//            val filteredApps = allApps.filter {
+//                it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
+//            }
+//            appsAdapter.updateList(filteredApps)
+//        }
+
         searchEditText.addTextChangedListener { text ->
-            val filteredApps = allApps.filter {
-                it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
+            // Filter your list based on the search query
+            val filteredApps = if (text.isNullOrEmpty()) {
+                appsListRecyclerView.visibility = View.GONE // Hide the list when there's no search query
+                listOf()
+            } else {
+                appsListRecyclerView.visibility = View.VISIBLE // Show the list when there's a search query
+                allApps.filter {
+                    it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
+                }
             }
             appsAdapter.updateList(filteredApps)
         }
