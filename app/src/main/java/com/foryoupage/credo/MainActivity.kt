@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,8 @@ class MainActivity : ComponentActivity() {
     private var allApps: List<ResolveInfo> = listOf()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+        actionBar?.hide()
 
         setContentView(R.layout.activity_main)
 
@@ -38,13 +41,6 @@ class MainActivity : ComponentActivity() {
         appsAdapter = AppsAdapter(this, allApps)
         appsListRecyclerView.adapter = appsAdapter
 
-//        searchEditText.addTextChangedListener { text ->
-//            val filteredApps = allApps.filter {
-//                it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
-//            }
-//            appsAdapter.updateList(filteredApps)
-//        }
-
         searchEditText.addTextChangedListener { text ->
             // Filter your list based on the search query
             val filteredApps = if (text.isNullOrEmpty()) {
@@ -53,12 +49,14 @@ class MainActivity : ComponentActivity() {
             } else {
                 appsListRecyclerView.visibility = View.VISIBLE // Show the list when there's a search query
                 allApps.filter {
-                    it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
+//                    it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
+                    it.loadLabel(packageManager).toString().equals(text.toString(), ignoreCase = true)
                 }
             }
             appsAdapter.updateList(filteredApps)
         }
-//        appsListRecyclerView.itemAnimator = DefaultItemAnimator()
+        val animation = AnimationUtils.loadAnimation(this, android.R.anim.fade_in)
+        appsListRecyclerView.startAnimation(animation)
     }
 
     private fun getAllInstalledApps(): List<ResolveInfo> {
