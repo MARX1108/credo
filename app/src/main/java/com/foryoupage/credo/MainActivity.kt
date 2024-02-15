@@ -2,12 +2,16 @@ package com.foryoupage.credo
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ResolveInfo
+import android.icu.text.SimpleDateFormat
+import android.icu.util.Calendar
 import android.widget.EditText
 //import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.view.MotionEvent
 import android.view.View
@@ -24,6 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.widget.addTextChangedListener
 import com.foryoupage.credo.ui.theme.CredoTheme
 import android.util.Log
+import android.widget.TextView
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     private lateinit var searchEditText: EditText
@@ -46,6 +52,10 @@ class MainActivity : ComponentActivity() {
         appsAdapter = AppsAdapter(this, allApps)
         appsListRecyclerView.adapter = appsAdapter
 
+        val tvTime = findViewById<TextView>(R.id.tvTime)
+        val tvDate = findViewById<TextView>(R.id.tvDate)
+        updateTimeAndDate(tvTime, tvDate)
+
         searchEditText.addTextChangedListener { text ->
 
             fun afterTextChanged(s: Editable) {
@@ -60,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 appsListRecyclerView.visibility = View.VISIBLE // Show the list when there's a search query
                 allApps.filter {
                     it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
-//                    it.loadLabel(packageManager).toString().equals(text.toString(), ignoreCase = true)
+                    // it.loadLabel(packageManager).toString().equals(text.toString(), ignoreCase = true)
                 }
             }
             appsAdapter.updateList(filteredApps)
@@ -87,6 +97,35 @@ class MainActivity : ComponentActivity() {
         }
         return packageManager.queryIntentActivities(intent, 0)
     }
+
+    private fun updateTimeAndDate(tvTime: TextView, tvDate: TextView) {
+        val currentTime = Calendar.getInstance().time
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault())
+
+        tvTime.text = timeFormat.format(currentTime)
+        tvDate.text = dateFormat.format(currentTime)
+    }
+
+    private val handler = Handler(Looper.getMainLooper())
+    private val timeUpdater = object : Runnable {
+        override fun run() {
+            val currentTime = Calendar.getInstance().time
+            findViewById<TextView>(R.id.tvTime).text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(currentTime)
+            handler.postDelayed(this, 60000) // Schedule the next update in 60 seconds
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        timeUpdater.run() // Start updates when the activity is in the foreground
+    }
+
+    override fun onPause() {
+        super.onPause()
+        handler.removeCallbacks(timeUpdater) // Stop updates when the activity is not visible
+    }
+
 }
 
 @Composable
