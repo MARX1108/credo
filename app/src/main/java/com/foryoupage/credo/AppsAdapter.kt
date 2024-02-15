@@ -2,6 +2,7 @@ package com.foryoupage.credo
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,10 +21,12 @@ class AppsAdapter(private val context: Context, private var appsList: List<Resol
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.item_app, parent, false)
+
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val appInfo = appsList[position]
         val app = appsList[position]
         val pm = context.packageManager
         holder.appName.text = app.loadLabel(pm)
@@ -31,8 +34,18 @@ class AppsAdapter(private val context: Context, private var appsList: List<Resol
 
         holder.itemView.setOnClickListener {
             // Launch the app
+            val packageName = appInfo.activityInfo.packageName
             val launchIntent = pm.getLaunchIntentForPackage(app.activityInfo.packageName)
             context.startActivity(launchIntent)
+
+            if (launchIntent != null) {
+                context.startActivity(launchIntent)
+                // Log the app launch
+                Log.d("AppLaunch", "Launched app package: $packageName, Timestamp: ${System.currentTimeMillis()}")
+            } else {
+                // Handle the case where there is no launch intent available
+                Log.d("AppLaunch", "Unable to find launch intent for package: $packageName")
+            }
         }
     }
 
