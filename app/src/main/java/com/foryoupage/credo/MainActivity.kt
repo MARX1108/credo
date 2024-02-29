@@ -52,9 +52,9 @@ class MainActivity : ComponentActivity() {
         appsAdapter = AppsAdapter(this, allApps)
         appsListRecyclerView.adapter = appsAdapter
 
-        val tvTime = findViewById<TextView>(R.id.tvTime)
-        val tvDate = findViewById<TextView>(R.id.tvDate)
-        updateTimeAndDate(tvTime, tvDate)
+//        val tvTime = findViewById<TextView>(R.id.tvTime)
+//        val tvDate = findViewById<TextView>(R.id.tvDate)
+//        updateTimeAndDate(tvTime, tvDate)
 
         searchEditText.addTextChangedListener { text ->
 
@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
             }
 
             // Filter your list based on the search query
-            val filteredApps = if (text.isNullOrEmpty()) {
+            val filteredApps = if (text.isNullOrEmpty() || text.length < 3) {
                 appsListRecyclerView.visibility = View.GONE // Hide the list when there's no search query
                 listOf()
             } else {
@@ -108,22 +108,22 @@ class MainActivity : ComponentActivity() {
     }
 
     private val handler = Handler(Looper.getMainLooper())
-    private val timeUpdater = object : Runnable {
-        override fun run() {
-            val currentTime = Calendar.getInstance().time
-            findViewById<TextView>(R.id.tvTime).text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(currentTime)
-            handler.postDelayed(this, 60000) // Schedule the next update in 60 seconds
-        }
-    }
+//    private val timeUpdater = object : Runnable {
+//        override fun run() {
+//            val currentTime = Calendar.getInstance().time
+//            findViewById<TextView>(R.id.tvTime).text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(currentTime)
+//            handler.postDelayed(this, 60000) // Schedule the next update in 60 seconds
+//        }
+//    }
 
     override fun onResume() {
         super.onResume()
-        timeUpdater.run() // Start updates when the activity is in the foreground
+//        timeUpdater.run() // Start updates when the activity is in the foreground
     }
 
     override fun onPause() {
         super.onPause()
-        handler.removeCallbacks(timeUpdater) // Stop updates when the activity is not visible
+//        handler.removeCallbacks(timeUpdater) // Stop updates when the activity is not visible
     }
 
 }
