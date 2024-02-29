@@ -48,6 +48,7 @@ class MainActivity : ComponentActivity() {
     private var allApps: List<ResolveInfo> = listOf()
     private lateinit var firebaseAnalytics: FirebaseAnalytics
     private lateinit var notificationManager: NotificationManager
+    private var wasDndEnabledInitially = false
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -158,18 +159,29 @@ class MainActivity : ComponentActivity() {
     private var startTime = 0L
     override fun onResume() {
         super.onResume()
+        // Record the start time for analytics
         startTime = System.currentTimeMillis()
-        setDndMode(true)
+
+        // Check and request DND permission if necessary
+        checkDndPermission()
+
+        // Check the initial state of DND
+        wasDndEnabledInitially = notificationManager.isNotificationPolicyAccessGranted &&
+                notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_NONE
+
+        // If DND is not already enabled, enable it
+        if (!wasDndEnabledInitially) {
+            setDndMode(true)
+        }
 //        timeUpdater.run() // Start updates when the activity is in the foreground
     }
 
     override fun onPause() {
         super.onPause()
-        val timeSpent = System.currentTimeMillis() - startTime
-        val timeBundle = Bundle()
-        timeBundle.putLong("time_spent_on_launcher", timeSpent)
-        firebaseAnalytics.logEvent("launcher_time_spent", timeBundle)
-        setDndMode(false)
+        logTimeSpentInLauncher()
+//        if (!wasDndEnabledInitially) {
+//            setDndMode(false)
+//        }
 //        handler.removeCallbacks(timeUpdater) // Stop updates when the activity is not visible
     }
 
@@ -230,10 +242,20 @@ class MainActivity : ComponentActivity() {
 
     private fun setDndMode(enabled: Boolean) {
         if (notificationManager.isNotificationPolicyAccessGranted) {
-            val interruptionFilter = if (enabled) NotificationManager.INTERRUPTION_FILTER_NONE else NotificationManager.INTERRUPTION_FILTER_ALL
+            val interruptionFilter = if (enabled) NotificationManager.INTERRUPTION_FILTER_NONE
+            else NotificationManager.INTERRUPTION_FILTER_ALL
             notificationManager.setInterruptionFilter(interruptionFilter)
         }
     }
+
+    private fun logTimeSpentInLauncher() {
+        val timeSpent = System.currentTimeMillis() - startTime
+        val timeBundle = Bundle().apply {
+            putLong("time_spent_on_launcher", timeSpent)
+        }
+        firebaseAnalytics.logEvent("launcher_time_spent", timeBundle)
+    }
+
 }
 
 
