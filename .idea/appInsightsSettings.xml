@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.foryoupage.credo" />
+                  <option name="mobileSdkAppId" value="1:964665864759:android:9ee04204b769e5fc32c5b2" />
+                  <option name="projectId" value="credo-72c33" />
+                  <option name="projectNumber" value="964665864759" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

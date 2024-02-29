@@ -30,6 +30,7 @@ import com.foryoupage.credo.ui.theme.CredoTheme
 import android.util.Log
 import android.widget.TextView
 import java.util.*
+import com.google.firebase.analytics.FirebaseAnalytics
 
 class MainActivity : ComponentActivity() {
     private lateinit var searchEditText: EditText

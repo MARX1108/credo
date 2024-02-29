@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "964665864759",
+    "project_id": "credo-72c33",
+    "storage_bucket": "credo-72c33.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:964665864759:android:9ee04204b769e5fc32c5b2",
+        "android_client_info": {
+          "package_name": "com.foryoupage.credo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO-9JeMtTyKSExRdiTAs3uOpJTZQRsCTk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
