@@ -33,6 +33,10 @@ import java.util.*
 import com.google.firebase.analytics.FirebaseAnalytics
 import android.provider.Settings
 import android.app.usage.UsageStatsManager
+import android.content.pm.PackageManager
+import android.app.NotificationManager
+import android.content.Context
+
 //import android.content.Intent
 
 class MainActivity : ComponentActivity() {
@@ -41,7 +45,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var appsAdapter: AppsAdapter
     private var allApps: List<ResolveInfo> = listOf()
     private lateinit var firebaseAnalytics: FirebaseAnalytics
-
+    private lateinit var notificationManager: NotificationManager
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,11 +66,14 @@ class MainActivity : ComponentActivity() {
 //        val tvTime = findViewById<TextView>(R.id.tvTime)
 //        val tvDate = findViewById<TextView>(R.id.tvDate)
 //        updateTimeAndDate(tvTime, tvDate)
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        checkDndPermission()
 
         if (!hasUsageStatsPermission()) {
             // Guide the user to enable the permission
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
+        promptSetDefaultLauncher()
 
         searchEditText.addTextChangedListener { text ->
 
@@ -147,6 +154,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         startTime = System.currentTimeMillis()
+        setDndMode(true)
 //        timeUpdater.run() // Start updates when the activity is in the foreground
     }
 
@@ -156,10 +164,31 @@ class MainActivity : ComponentActivity() {
         val timeBundle = Bundle()
         timeBundle.putLong("time_spent_on_launcher", timeSpent)
         firebaseAnalytics.logEvent("launcher_time_spent", timeBundle)
+        setDndMode(false)
 //        handler.removeCallbacks(timeUpdater) // Stop updates when the activity is not visible
     }
 
+    private fun isDefaultLauncher(): Boolean {
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.addCategory(Intent.CATEGORY_HOME)
+        val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        return resolveInfo?.activityInfo?.packageName == packageName
+    }
 
+    private fun promptSetDefaultLauncher() {
+        if (!isDefaultLauncher()) {
+            // Your app is not the default launcher
+            // Guide the user to the settings page to set it as default
+            val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+            startActivity(intent)
+        }
+    }
+    private fun checkDndPermission() {
+        if (!notificationManager.isNotificationPolicyAccessGranted) {
+            val intent = Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+            startActivity(intent)
+        }
+    }
     private fun hasUsageStatsPermission(): Boolean {
         val appOps = getSystemService(APP_OPS_SERVICE) as AppOpsManager
         val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
@@ -193,7 +222,15 @@ class MainActivity : ComponentActivity() {
             firebaseAnalytics.logEvent("app_usage", bundle)
         }
     }
+
+    private fun setDndMode(enabled: Boolean) {
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            val interruptionFilter = if (enabled) NotificationManager.INTERRUPTION_FILTER_NONE else NotificationManager.INTERRUPTION_FILTER_ALL
+            notificationManager.setInterruptionFilter(interruptionFilter)
+        }
+    }
 }
+
 
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
