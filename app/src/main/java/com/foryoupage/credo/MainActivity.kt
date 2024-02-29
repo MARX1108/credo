@@ -37,6 +37,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var appsListRecyclerView: RecyclerView
     private lateinit var appsAdapter: AppsAdapter
     private var allApps: List<ResolveInfo> = listOf()
+    private lateinit var firebaseAnalytics: FirebaseAnalytics
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,12 +47,13 @@ class MainActivity : ComponentActivity() {
 
         setContentView(R.layout.activity_main)
 
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
         searchEditText = findViewById(R.id.search_bar)
         appsListRecyclerView = findViewById(R.id.apps_list)
         appsListRecyclerView.layoutManager = LinearLayoutManager(this)
 
         allApps = getAllInstalledApps()
-        appsAdapter = AppsAdapter(this, allApps)
+        appsAdapter = AppsAdapter(this, allApps, firebaseAnalytics)
         appsListRecyclerView.adapter = appsAdapter
 
 //        val tvTime = findViewById<TextView>(R.id.tvTime)
@@ -68,6 +71,11 @@ class MainActivity : ComponentActivity() {
                 appsListRecyclerView.visibility = View.GONE // Hide the list when there's no search query
                 listOf()
             } else {
+
+                val bundle = Bundle()
+                bundle.putString(FirebaseAnalytics.Param.SEARCH_TERM, text.toString())
+                firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SEARCH, bundle)
+
                 appsListRecyclerView.visibility = View.VISIBLE // Show the list when there's a search query
                 allApps.filter {
                     it.loadLabel(packageManager).toString().contains(text.toString(), ignoreCase = true)
@@ -76,6 +84,8 @@ class MainActivity : ComponentActivity() {
             }
             appsAdapter.updateList(filteredApps)
         }
+
+
 
         searchEditText.setOnTouchListener { v, event ->
             val drawableEnd = 2
@@ -99,6 +109,15 @@ class MainActivity : ComponentActivity() {
         return packageManager.queryIntentActivities(intent, 0)
     }
 
+    private fun logAppLaunch(appPackageName: String) {
+        val launchBundle = Bundle().apply {
+            putString("app_package_name", appPackageName)
+            putLong("launch_time", System.currentTimeMillis())
+        }
+        firebaseAnalytics.logEvent("app_launch", launchBundle)
+    }
+
+
     private fun updateTimeAndDate(tvTime: TextView, tvDate: TextView) {
         val currentTime = Calendar.getInstance().time
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -116,14 +135,19 @@ class MainActivity : ComponentActivity() {
 //            handler.postDelayed(this, 60000) // Schedule the next update in 60 seconds
 //        }
 //    }
-
+    private var startTime = 0L
     override fun onResume() {
         super.onResume()
+        startTime = System.currentTimeMillis()
 //        timeUpdater.run() // Start updates when the activity is in the foreground
     }
 
     override fun onPause() {
         super.onPause()
+        val timeSpent = System.currentTimeMillis() - startTime
+        val timeBundle = Bundle()
+        timeBundle.putLong("time_spent_on_launcher", timeSpent)
+        firebaseAnalytics.logEvent("launcher_time_spent", timeBundle)
 //        handler.removeCallbacks(timeUpdater) // Stop updates when the activity is not visible
     }
 

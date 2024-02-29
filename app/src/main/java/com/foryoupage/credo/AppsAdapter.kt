@@ -9,9 +9,9 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-//import com.yourpackage.name.R // Make sure to replace with your actual package name
-
-class AppsAdapter(private val context: Context, private var appsList: List<ResolveInfo>) :
+import com.google.firebase.analytics.FirebaseAnalytics
+import android.os.Bundle
+class AppsAdapter(private val context: Context, private var appsList: List<ResolveInfo>,private val firebaseAnalytics: FirebaseAnalytics ) :
     RecyclerView.Adapter<AppsAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -37,6 +37,11 @@ class AppsAdapter(private val context: Context, private var appsList: List<Resol
             val packageName = appInfo.activityInfo.packageName
             val launchIntent = pm.getLaunchIntentForPackage(app.activityInfo.packageName)
             context.startActivity(launchIntent)
+
+            val bundle = Bundle()
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, packageName)
+            bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "app_launch")
+            firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle)
 
             if (launchIntent != null) {
                 context.startActivity(launchIntent)
