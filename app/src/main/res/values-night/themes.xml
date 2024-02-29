@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<!--    <style name="Theme.Credo" parent="android:Theme.Material.Light.NoActionBar" />-->
+
+    <style name="Theme.Credo" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary branding color -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Make the status bar transparent -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- Ensure content extends into the status and navigation bar area -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <!-- Make the navigation bar transparent (optional) -->
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- Control the status bar icons to be light or dark -->
+        <item name="android:windowLightStatusBar">true</item> <!-- Set to true for dark icons, false for light icons -->
+    </style>
+
+
+</resources>

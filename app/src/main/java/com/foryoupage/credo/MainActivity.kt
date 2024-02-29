@@ -36,7 +36,9 @@ import android.app.usage.UsageStatsManager
 import android.content.pm.PackageManager
 import android.app.NotificationManager
 import android.content.Context
-
+import android.os.Build
+import android.view.WindowInsetsController
+import androidx.core.view.WindowCompat
 //import android.content.Intent
 
 class MainActivity : ComponentActivity() {
@@ -66,6 +68,8 @@ class MainActivity : ComponentActivity() {
 //        val tvTime = findViewById<TextView>(R.id.tvTime)
 //        val tvDate = findViewById<TextView>(R.id.tvDate)
 //        updateTimeAndDate(tvTime, tvDate)
+
+//        Permission Check---------------------
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         checkDndPermission()
 
@@ -74,6 +78,7 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
         promptSetDefaultLauncher()
+
 
         searchEditText.addTextChangedListener { text ->
 
