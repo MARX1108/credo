@@ -8,7 +8,7 @@ import android.widget.EditText
 //import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-
+import android.app.AppOpsManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -31,6 +31,9 @@ import android.util.Log
 import android.widget.TextView
 import java.util.*
 import com.google.firebase.analytics.FirebaseAnalytics
+import android.provider.Settings
+import android.app.usage.UsageStatsManager
+//import android.content.Intent
 
 class MainActivity : ComponentActivity() {
     private lateinit var searchEditText: EditText
@@ -59,6 +62,11 @@ class MainActivity : ComponentActivity() {
 //        val tvTime = findViewById<TextView>(R.id.tvTime)
 //        val tvDate = findViewById<TextView>(R.id.tvDate)
 //        updateTimeAndDate(tvTime, tvDate)
+
+        if (!hasUsageStatsPermission()) {
+            // Guide the user to enable the permission
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+        }
 
         searchEditText.addTextChangedListener { text ->
 
@@ -151,6 +159,40 @@ class MainActivity : ComponentActivity() {
 //        handler.removeCallbacks(timeUpdater) // Stop updates when the activity is not visible
     }
 
+
+    private fun hasUsageStatsPermission(): Boolean {
+        val appOps = getSystemService(APP_OPS_SERVICE) as AppOpsManager
+        val mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), packageName)
+        return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    private fun scheduleAppUsageLogging() {
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+            override fun run() {
+                logAppUsageStats()
+                handler.postDelayed(this, 600000) // Schedule the next run in 10 minutes
+            }
+        }
+        handler.post(runnable)
+    }
+
+    private fun logAppUsageStats() {
+        val usageStatsManager = getSystemService(USAGE_STATS_SERVICE) as UsageStatsManager
+        val endTime = System.currentTimeMillis()
+        val startTime = endTime - 600000 // Last 10 minutes
+
+        val stats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, startTime, endTime)
+
+        stats.forEach { stat ->
+            // Log each app's package name and total foreground usage time in milliseconds
+            val bundle = Bundle().apply {
+                putString("app_package_name", stat.packageName)
+                putLong("usage_time_ms", stat.totalTimeInForeground)
+            }
+            firebaseAnalytics.logEvent("app_usage", bundle)
+        }
+    }
 }
 
 @Composable
